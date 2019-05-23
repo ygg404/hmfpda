@@ -33,8 +33,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView datachannel;
     @ViewInject(R.id.sys_channel)
     private TextView syschannel;
-    @ViewInject(R.id.prod_channel)
-    private TextView prodchannel;
+//    @ViewInject(R.id.prod_channel)
+//    private TextView prodchannel;
 
 
     @Override
@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         datachannel.setOnClickListener(this);
         syschannel.setOnClickListener(this);
-        prodchannel.setOnClickListener(this);
+//        prodchannel.setOnClickListener(this);
         aDialog = new Adialog(this);
     }
     /**
@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void resetSelected(){
         datachannel.setSelected(false);
         syschannel.setSelected(false);
-        prodchannel.setSelected(false);
+//        prodchannel.setSelected(false);
     }
 
 

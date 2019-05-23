@@ -34,6 +34,8 @@ import com.example.kicp.hmfpda.Utils.Models.GodownMBillingListResultMsg;
 import com.example.kicp.hmfpda.Utils.Models.GodownMListResultMsg;
 import com.example.kicp.hmfpda.Utils.Models.OrderBillingListResultMsg;
 import com.example.kicp.hmfpda.Utils.Models.OrderListResultMsg;
+import com.example.kicp.hmfpda.Utils.Models.OrderScanSaveResultMsg;
+import com.example.kicp.hmfpda.Utils.Models.ReturnScanSaveResultMsg;
 import com.example.kicp.hmfpda.Utils.ProgersssDialog;
 import com.example.kicp.hmfpda.Utils.Public;
 import com.example.kicp.hmfpda.decodeLib.DecodeBaseActivity;
@@ -355,7 +357,7 @@ public class OrderScanActivity extends DecodeBaseActivity implements  View.OnCli
     }
 
     //保存扫描文件
-    public void SaveScanFile() throws Exception{
+    public void SaveScanFile(int scanQty) throws Exception{
         try {
             //如果文件存在，则重写内容；如果文件不存在，则创建文件
             File f=new File(ScanFileName);
@@ -372,7 +374,7 @@ public class OrderScanActivity extends DecodeBaseActivity implements  View.OnCli
                     productId + "," +
                     tbProduct.getText().toString() + "," +
                     ln + "," +
-                    tbBarcode.getText().toString() + "," +
+                    String.valueOf(scanQty) + "," +
                     LoginActivity.CreateUserId + "," +
                     df.format(new Date()) +
                     "\r\n"); // \r\n即为换行
@@ -614,6 +616,122 @@ public class OrderScanActivity extends DecodeBaseActivity implements  View.OnCli
         et.setFocusableInTouchMode(false);      //触摸时也得不到焦点
     }
 
+    Handler eHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            //登录加载dialog关闭
+            mProgersssDialog.cancel();
+            switch (msg.what) {
+                //错误提示
+                case 0:
+                    //do something,refresh UI;
+                    mAdialog.failDialog( msg.obj.toString() );
+                    break;
+                //成功提示
+                case 1:
+                    //do something,refresh UI;
+                    lbBillCount.setText(String.valueOf(billCount));
+                    lbBillPreset.setText( String.valueOf(billPreset));
+                    lbCurCount.setText( String.valueOf(curCount));
+                    lbCurPreset.setText( String.valueOf(curPreSet));
+                    if(msg.obj != null) mAdialog.okDialog(msg.obj.toString());
+                    break;
+                //下载单据后更新UI
+                case 2:
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+
+    //提交扫码
+    Runnable PostOrder = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                Message mess = new Message();
+                int scanQty = 0;
+                String barcode = tbBarcode.getText().toString().trim();
+                String ln = tbLN.getText().toString().trim();
+                //在线采集
+                if (LoginActivity.onlineFlag) {
+                    //上传扫描明细
+                    String exceptionMsg = "";
+                    HashMap<String, String> parames = new HashMap<>();
+                    parames.put("orderId", billId);
+                    parames.put("serialNo", barcode);
+                    parames.put("agentId", agentId);
+                    parames.put("productId", productId);
+                    parames.put("ln", ln);
+                    parames.put("createUserId", LoginActivity.CreateUserId);
+
+                    OrderScanSaveResultMsg orScan = ApiHelper.GetHttp(OrderScanSaveResultMsg.class,
+                            Config.WebApiUrl + "PostOrderSerialNo?", parames, Config.StaffId, Config.AppSecret, true);
+                    orScan.setResult();
+
+                    if(!exceptionMsg.isEmpty()){
+                        mess.what = 0;
+                        mess.obj = exceptionMsg;
+                        eHandler.sendMessage(mess);
+                        return;
+                    }
+
+                    if(orScan.StatusCode != 200){
+                        mess.what = 0;
+                        mess.obj = orScan.Info;
+                        eHandler.sendMessage(mess);
+                        return;
+                    }
+
+                    scanQty = orScan.Qty;
+
+                    if (scanQty == 0) {
+                        mess.what = 0;
+                        mess.obj = "异常：出库数量为0！";
+                        eHandler.sendMessage(mess);
+                        return;
+                    }
+                    //保存到扫描文件
+                    SaveScanFile(scanQty);
+                }
+                curCount += scanQty;
+                billCount += scanQty;
+
+                barcode_exit.add(barcode);//加到内存中
+
+                if (billCount == billPreset)
+                {
+                    mess.what = 1;
+                    mess.obj = "本单已扫描完成!";
+                    eHandler.sendMessage(mess);
+                    return;
+                }
+
+                if (curCount == curPreSet)
+                {
+                    mess.what = 1;
+                    mess.obj = "当前产品扫描完成!";
+                    eHandler.sendMessage(mess);
+                    return;
+                }
+
+                mess.what = 1;
+                mess.obj = null;
+                eHandler.sendMessage(mess);
+                return;
+            }catch (Exception ex){
+                Message mess = new Message();
+                mess.what = 0;
+                mess.obj = ex.getMessage();
+                eHandler.sendMessage(mess);
+                return;
+            }
+
+        }
+    };
+
     //扫码处理
     public void HandleBarcode(String barCode)
     {
@@ -635,7 +753,7 @@ public class OrderScanActivity extends DecodeBaseActivity implements  View.OnCli
 
             mProgersssDialog = new ProgersssDialog(this.getApplicationContext());
             mProgersssDialog.setMsg("扫码上传中");
-//            new Thread(CheckGroupXRun).start();
+            new Thread(PostOrder).start();
         }
         else
         {
