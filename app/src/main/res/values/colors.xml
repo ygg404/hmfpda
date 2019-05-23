@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="colorRed">#F00000</color>
+    <color name="colorWhite">#FFFFFF</color>
+    <color name="colorGreen">#56b765</color>
+    <color name="colorBlack">#000000</color>
+    <color name="colorLoginEditText">#EFEFEF</color>
+    <color name="colorlogin_button">#64b6f7</color>
+    <color name="colorlogin_kbutton">#a4b6f7</color>
+
+    <color name="color_title">#64b6f7</color>
+    <color name="palewhite">#F0F0F0</color>
+    <color name="border">#9F9F9F</color>
+    <color name="tabcolor">#34a6f7</color>
+    <color name="transparent">#4f2a2a2a</color>
+    <color name="tiptransparent">#af555555</color>
+</resources>

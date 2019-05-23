@@ -1,0 +1,141 @@
+<resources>
+    <string name="app_name">HmfPDA</string>
+
+    <string name="gd_kinde_tech">广东正迪科技</string>
+    <string name="good_collect_system">物流采集系统</string>
+    <string name="version">版本：V1.0.0.2018xxxx_x</string>
+    <string name="scannerID">扫描器ID：</string>
+    <string name="code">代码</string>
+    <string name="model">登录方式:</string>
+    <string name="user_text">用  户  名:</string>
+    <string name="psw_text">密&#12288;&#12288;码:</string>
+    <string name="online">在线</string>
+    <string name="offline">离线</string>
+    <string name="user">用户</string>
+    <string name="password">密码</string>
+    <string name="login">登录</string>
+    <string name="exit">退出</string>
+
+    <string name="progressbar_dialog_txt">登录中</string>
+
+    <string name="main_title">主菜单</string>
+    <!--基础库下载-->
+    <string name="downTitle">基础库下载</string>
+    <string name="downAllBtn">下载所有数据</string>
+    <string name="downStockBtn">下载仓库数据</string>
+    <string name="downProductBtn">下载产品数据</string>
+    <string name="downAgentBtn">下载客户数据</string>
+
+    <!--主界面导航栏-->
+    <string name="data_text">数据管理</string>
+    <string name="sys_text">系统设置</string>
+    <string name="prod_text">生产管理</string>
+    <string name="quit_text">退出</string>
+
+    <string name="inmenu">入库管理</string>
+    <string name="ordermenu">发货管理</string>
+    <string name="returnmenu">退货管理</string>
+    <string name="allotmenu">调拨管理</string>
+    <string name="checkmenu">盘点管理</string>
+    <string name="groupxmenu">生产关联箱</string>
+    <string name="basemenu">基础库下载</string>
+
+    <string name="bill">单据</string>
+    <string name="scan">采集</string>
+    <string name="query">查询</string>
+
+    <string name="billnum">单据编号:</string>
+    <string name="billdatebegin">开始时间:</string>
+    <string name="billdateend">结束时间:</string>
+
+    <string name="godown_scantext">入库采集</string>
+    <string name="order_scantext">发货采集</string>
+    <string name="return_scantext">退货采集</string>
+    <string name="allot_scantext">调拨采集</string>
+    <string name="check_scantext">盘点采集</string>
+    <string name="gx_scantext">关联箱采集</string>
+    <string name="gm_scantext">组装入库采集</string>
+    <!--采集通用-->
+    <string name="bill_num">选择单号:</string>
+    <string name="bill_date">单据日期:</string>
+    <string name="barcode">当前条码:</string>
+    <string name="lbCurPreset">当前预设:</string>
+    <string name="lbBillPreset">本单预设:</string>
+    <string name="lbCurCount">当前扫描:</string>
+    <string name="lbBillCount">本单扫描:</string>
+    <string name="btnLock">锁定</string>
+    <string name="btnUnLock">解除</string>
+    <string name="btnUpload">上传</string>
+    <string name="btnDelBill">删除</string>
+    <string name="btnQuit">退出</string>
+
+    <!--入库采集-->
+    <string name="in_warehouse">入库仓库:</string>
+    <string name="in_product">入库产品:</string>
+    <string name="in_pr">生产日期:</string>
+    <string name="in_ln">生产批次:</string>
+    <!--发货采集-->
+    <string name="agent_name">客户名称:</string>
+    <string name="order_product">发货产品:</string>
+    <!--退货采集-->
+    <string name="warehouse_name">仓库名称:</string>
+    <string name="return_product">退货产品:</string>
+    <!--调拨采集-->
+    <string name="inWarehouse">调 入 仓 :</string>
+    <string name="outWarehouse">调 出 仓 :</string>
+    <string name="allot_product">调拨产品:</string>
+    <!--盘点采集-->
+    <string name="checkWarehouse">盘点仓库:</string>
+    <string name="check_product">盘点产品:</string>
+    <!--关联箱采集-->
+    <string name="gx_product">产品名称:</string>
+    <string name="gx_group">当 前 组： </string>
+
+    <string name="pcode">编号</string>
+    <string name="pname">产品名称</string>
+    <string name="pln">产品批次</string>
+    <string name="pr">产品日期</string>
+
+    <!--查询标题-->
+    <string name="godown_querytitle">入库单查询</string>
+    <string name="order_querytitle">出库单查询</string>
+    <string name="return_querytitle">退货单查询</string>
+    <string name="allot_querytitle">调拨单查询</string>
+    <string name="check_querytitle">盘点单查询</string>
+    <string name="godownx_querytitle">关联箱单查询</string>
+    <string name="godownm_querytitle">组装入库查询</string>
+    <!--查询框-->
+    <string name="query_barcode">条码</string>
+    <string name="query_product">名称</string>
+    <string name="query_count">数量</string>
+    <!--查询按钮-->
+    <string name="delallbtn">整组删除</string>
+    <string name="delonebtn">删除单件</string>
+    <string name="quitbtn">退出</string>
+    <!--查询选择项-->
+    <string name="qid">产品id</string>
+    <string name="qcode">编码:</string>
+    <string name="qname">名称:</string>
+    <string name="qln">批次:</string>
+    <string name="qpr">日期:</string>
+
+    <!--查询通用字段-->
+    <string name="billno">选择单号:</string>
+    <string name="agent">客户名称:</string>
+    <string name="warehouse">仓库名称:</string>
+    <string name="product">产品名称:</string>
+    <string name="ln">生产批次:</string>
+
+
+
+    <!--系统设置-->
+    <string name="delFileMenu">删除文件</string>
+    <string name="sysConfigMenu">系统设置</string>
+    <string name="WebApiUrl">WebApiUrl:</string>
+    <string name="StaffId">StaffId:</string>
+    <string name="AppSecret">AppSecret:</string>
+    <string name="delFileText">选择删除文件:</string>
+    <string name="delFileBtn">删除</string>
+    <string name="saveFileBtn">保存</string>
+
+</resources>
