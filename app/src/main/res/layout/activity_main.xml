@@ -56,19 +56,19 @@
             android:textColor="@drawable/tab_txtbg"
 
             android:textSize="18sp" />
-        <TextView
-            android:id="@+id/prod_channel"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:drawablePadding="3dp"
-            android:drawableTop="@drawable/tab_prod_channel"
-            android:gravity="center"
-            android:padding="5dp"
-            android:text="@string/prod_text"
-            android:textColor="@drawable/tab_txtbg"
+        <!--<TextView-->
+            <!--android:id="@+id/prod_channel"-->
+            <!--android:layout_width="0dp"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:layout_weight="1"-->
+            <!--android:drawablePadding="3dp"-->
+            <!--android:drawableTop="@drawable/tab_prod_channel"-->
+            <!--android:gravity="center"-->
+            <!--android:padding="5dp"-->
+            <!--android:text="@string/prod_text"-->
+            <!--android:textColor="@drawable/tab_txtbg"-->
 
-            android:textSize="18sp" />
+            <!--android:textSize="18sp" />-->
         <TextView
             android:id="@+id/sys_channel"
             android:layout_width="0dp"
