@@ -6,14 +6,12 @@ import com.example.kicp.hmfpda.Utils.Enum.StatusCodeEnum;
  * 订单删除类
  */
 public class OrderScanDeleteResultMsg extends HttpResponseMsg{
-    public String Result;
-
-    public void setResult(){
+    public String Result(){
         if(StatusCode == StatusCodeEnum.Success.getValue() && !(Data == null || Data=="")){
-            Result =   Data.toString() ;
+           return Data.toString() ;
         }
         else{
-            Result = null;
+            return null;
         }
     }
 }

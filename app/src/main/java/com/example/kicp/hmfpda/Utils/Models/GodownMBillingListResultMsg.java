@@ -11,15 +11,12 @@ import java.util.List;
  *组装入库明细 请求类
  */
 public class GodownMBillingListResultMsg extends HttpResponseMsg{
-    public List<GodownMBillingEntity> Result;
-
-    public void setResult(){
+    public List<GodownMBillingEntity> Result(){
         if(StatusCode == StatusCodeEnum.Success.getValue() && !(Data == null || Data=="")){
-            Result =  JSON.parseArray(Data.toString(), GodownMBillingEntity.class);
+            return JSON.parseArray(Data.toString(), GodownMBillingEntity.class);
         }
         else{
-            Result = null;
+            return null;
         }
-
     }
 }

@@ -49,10 +49,4 @@ public class FileHelper {
 
     }
 
-    //创建文件
-    public static void CreateFile(Context mContext, String file)
-    {
-
-
-    }
 }

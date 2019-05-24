@@ -10,15 +10,12 @@ import java.util.List;
  * 退货明细单 获取类
  */
 public class ReturnBillingListResultMsg extends HttpResponseMsg{
-    public List<ReturnBillingEntity> Result;
-
-    public void setResult(){
+    public List<ReturnBillingEntity> Result(){
         if(StatusCode == StatusCodeEnum.Success.getValue() && !(Data == null || Data=="")){
-            Result =  JSON.parseArray(Data.toString(), ReturnBillingEntity.class);
+            return JSON.parseArray(Data.toString(), ReturnBillingEntity.class);
         }
         else{
-            Result = null;
+            return null;
         }
-
     }
 }

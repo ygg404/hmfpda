@@ -287,39 +287,37 @@ public class OrderScanActivity extends DecodeBaseActivity implements  View.OnCli
 
             OrderListResultMsg Listc = ApiHelper.GetHttp(OrderListResultMsg.class,
                     Config.WebApiUrl + "GetOrderList?", query, Config.StaffId , Config.AppSecret ,true);
-            Listc.setResult();
 
             if(Listc.StatusCode != 200)
             {
                 throw new Exception(Listc.Info);
             }
-            if( Listc.Result == null || Listc.Result.isEmpty())
+            if( Listc.Result() == null || Listc.Result().isEmpty())
             {
                 throw new Exception("无相关主单数据！");
             }
 
             //保存入库主单
-            SaveGoDownDataFile(Listc.Result);
+            SaveGoDownDataFile(Listc.Result());
 
             //获取主单明细，并保存
-            for( OrderEntity orEntity : Listc.Result)
+            for( OrderEntity orEntity : Listc.Result())
             {
                 query.clear();
                 query.put("orderId" , orEntity.OrderId);
                 OrderBillingListResultMsg orderBillListc = ApiHelper.GetHttp(OrderBillingListResultMsg.class,
                         Config.WebApiUrl + "GetOrderBillingListByOrderId?", query, Config.StaffId , Config.AppSecret ,true);
-                orderBillListc.setResult();
 
                 if(orderBillListc.StatusCode != 200)
                 {
                     throw new Exception(orderBillListc.Info);
                 }
-                if( orderBillListc.Result == null || orderBillListc.Result.isEmpty())
+                if( orderBillListc.Result() == null || orderBillListc.Result().isEmpty())
                 {
                     continue;
                 }
                 SetFilePath(orEntity.OrderCode);
-                SaveGoDownBillingDataFile(orderBillListc.Result);
+                SaveGoDownBillingDataFile(orderBillListc.Result());
             }
         }catch (Exception ex){
             throw new Exception(ex.getMessage());
@@ -669,7 +667,6 @@ public class OrderScanActivity extends DecodeBaseActivity implements  View.OnCli
 
                     OrderScanSaveResultMsg orScan = ApiHelper.GetHttp(OrderScanSaveResultMsg.class,
                             Config.WebApiUrl + "PostOrderSerialNo?", parames, Config.StaffId, Config.AppSecret, true);
-                    orScan.setResult();
 
                     if(!exceptionMsg.isEmpty()){
                         mess.what = 0;
@@ -685,7 +682,7 @@ public class OrderScanActivity extends DecodeBaseActivity implements  View.OnCli
                         return;
                     }
 
-                    scanQty = orScan.Qty;
+                    scanQty = orScan.Qty();
 
                     if (scanQty == 0) {
                         mess.what = 0;

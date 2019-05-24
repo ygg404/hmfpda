@@ -429,39 +429,37 @@ public class GodownMScanActivity extends DecodeBaseActivity implements  View.OnC
 
             GodownMListResultMsg gmListc = ApiHelper.GetHttp(GodownMListResultMsg.class,
                     Config.WebApiUrl + "GetGodownMList?", query, Config.StaffId , Config.AppSecret ,true);
-            gmListc.setResult();
 
             if(gmListc.StatusCode != 200)
             {
                 throw new Exception(gmListc.Info);
             }
-            if( gmListc.Result == null || gmListc.Result.isEmpty())
+            if( gmListc.Result() == null || gmListc.Result().isEmpty())
             {
                 throw new Exception("无相关主单数据！");
             }
 
             //保存入库主单
-            SaveGoDownDataFile(gmListc.Result);
+            SaveGoDownDataFile(gmListc.Result());
 
             //获取主单明细，并保存
-            for( GodownMEntity gmEntity : gmListc.Result)
+            for( GodownMEntity gmEntity : gmListc.Result())
             {
                 query.clear();
                 query.put("godownMId" , gmEntity.GodownMId);
                 GodownMBillingListResultMsg godBillListc = ApiHelper.GetHttp(GodownMBillingListResultMsg.class,
                         Config.WebApiUrl + "GetGodownMBillingListByGodownMId?", query, Config.StaffId , Config.AppSecret ,true);
-                godBillListc.setResult();
 
                 if(godBillListc.StatusCode != 200)
                 {
                     throw new Exception(godBillListc.Info);
                 }
-                if( godBillListc.Result == null || godBillListc.Result.isEmpty())
+                if( godBillListc.Result() == null || godBillListc.Result().isEmpty())
                 {
                     continue;
                 }
                 SetFilePath(gmEntity.GodownMCode);
-                SaveGoDownBillingDataFile(godBillListc.Result);
+                SaveGoDownBillingDataFile(godBillListc.Result());
             }
         }catch (Exception ex){
             throw new Exception(ex.getMessage());
@@ -512,7 +510,7 @@ public class GodownMScanActivity extends DecodeBaseActivity implements  View.OnC
                         entity.ProductName + "," +
                         entity.Qty + "," +
                         entity.LN + "," +
-                        (entity.PR == null ? "" : formatter.format(entity.PR)) + "," +
+                        (entity.PR == null? "" : formatter.format(entity.PR)) + "," +
                         entity.SinglePerBox +
                         "\r\n"); // \r\n即为换行
                 out.flush(); // 把缓存区内容压入文件
@@ -732,7 +730,7 @@ public class GodownMScanActivity extends DecodeBaseActivity implements  View.OnC
 
                 GodownMScanSaveResultMsg gmScan = ApiHelper.GetHttp(GodownMScanSaveResultMsg.class,
                         Config.WebApiUrl + "CheckGodownMSerialNo?", parames, Config.StaffId, Config.AppSecret, true);
-                gmScan.setResult();
+
 
                 if(gmScan.StatusCode != 200){
                     if(gmScan.Info.equals("OK1")){
@@ -770,7 +768,6 @@ public class GodownMScanActivity extends DecodeBaseActivity implements  View.OnC
                         sparames.put("createUserId", LoginActivity.CreateUserId);
                         GodownMScanSaveResultMsg sgmScan = ApiHelper.GetHttp(GodownMScanSaveResultMsg.class,
                                 Config.WebApiUrl + "PostGodownMSerialNo?", sparames, Config.StaffId, Config.AppSecret, true);
-                        sgmScan.setResult();
 
                         if( sgmScan.StatusCode != 200 ){
                             throw new Exception(sgmScan.Info);
@@ -779,7 +776,7 @@ public class GodownMScanActivity extends DecodeBaseActivity implements  View.OnC
                         barcode_exit.add(realBarcode);
                         CurProductCount = 0;
                         CurSerailNoAddType = 1;
-                        qty = sgmScan.Qty;
+                        qty = sgmScan.Qty();
 
                         SaveScanFile();
 

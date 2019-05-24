@@ -11,20 +11,13 @@ import java.io.Serializable;
  */
 
 public class TokenResultMsg extends HttpResponseMsg implements Serializable {
-    private Token Result;
-
-    public Token getResult(){
-        return Result;
-    }
-
-    public void setResult(){
+    public Token Result(){
         if(StatusCode == StatusCodeEnum.Success.getValue()){
-            Result = JSON.parseObject(Data.toString(), Token.class);
+            return JSON.parseObject(Data.toString(), Token.class);
         }
         else{
-            Result = null;
+            return null;
         }
-
     }
 
 }

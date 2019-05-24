@@ -239,12 +239,11 @@ public class GodownMQueryActivity extends DecodeBaseActivity implements  View.On
 
                         GodownMScanDeleteResultMsg gmDel = ApiHelper.GetHttp(GodownMScanDeleteResultMsg.class,
                                 Config.WebApiUrl + "GodownMScanDelete?", query, Config.StaffId, Config.AppSecret, true);
-                        gmDel.setResult();
 
                         if (gmDel.StatusCode != 200) {
                             throw new Exception(gmDel.Info);
                         }
-                        if (gmDel.Result == null || gmDel.Result.isEmpty()) {
+                        if (gmDel.Result() == null || gmDel.Result().isEmpty()) {
                             throw new Exception("无相关删除内容！");
                         }
                     }
@@ -353,12 +352,11 @@ public class GodownMQueryActivity extends DecodeBaseActivity implements  View.On
 
                     GodownMScanDeleteResultMsg gmDel = ApiHelper.GetHttp(GodownMScanDeleteResultMsg.class,
                             Config.WebApiUrl + "GodownMScanDelete?", query, Config.StaffId, Config.AppSecret, true);
-                    gmDel.setResult();
 
                     if (gmDel.StatusCode != 200) {
                         throw new Exception(gmDel.Info);
                     }
-                    if (gmDel.Result == null || gmDel.Result.isEmpty()) {
+                    if (gmDel.Result() == null || gmDel.Result().isEmpty()) {
                         throw new Exception("无相关删除内容！");
                     }
 

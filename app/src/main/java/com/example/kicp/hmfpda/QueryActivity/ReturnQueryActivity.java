@@ -13,12 +13,18 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.example.kicp.hmfpda.LoginActivity;
 import com.example.kicp.hmfpda.Models.BarcodeEntity;
+import com.example.kicp.hmfpda.Models.GodownMScanEntity;
 import com.example.kicp.hmfpda.Models.OrderScanEntity;
 import com.example.kicp.hmfpda.Models.ReturnBillingEntity;
 import com.example.kicp.hmfpda.Models.ReturnScanEntity;
 import com.example.kicp.hmfpda.R;
 import com.example.kicp.hmfpda.Utils.Adialog;
+import com.example.kicp.hmfpda.Utils.ApiHelper;
+import com.example.kicp.hmfpda.Utils.Config.Config;
+import com.example.kicp.hmfpda.Utils.Models.GodownMScanDeleteResultMsg;
+import com.example.kicp.hmfpda.Utils.Models.ReturnScanDeleteResultMsg;
 import com.example.kicp.hmfpda.Utils.ProgersssDialog;
 import com.example.kicp.hmfpda.Utils.Public;
 import com.example.kicp.hmfpda.decodeLib.DecodeBaseActivity;
@@ -32,9 +38,12 @@ import org.xutils.view.annotation.ViewInject;
 import org.xutils.x;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -44,10 +53,8 @@ import java.util.List;
 @ContentView(R.layout.query_return)
 public class ReturnQueryActivity extends DecodeBaseActivity implements  View.OnClickListener,BarcodeManager.OnEngineStatus {
 
-    @ViewInject(R.id.delOneBtn)
-    private Button btnDelOne;         //删除单件
-    @ViewInject(R.id.delAllBtn)
-    private Button btnDelAll;         //删除整组
+    @ViewInject(R.id.delBtn)
+    private Button btnDel;         //删除按钮
     @ViewInject(R.id.quitBtn)
     private Button btnQuit;      //退出按钮
     @ViewInject(R.id.tbBillNo)
@@ -66,7 +73,6 @@ public class ReturnQueryActivity extends DecodeBaseActivity implements  View.OnC
     private String EntryFileName = "";//明细文件
     private String ScanFileName = "";//扫描文件
 
-    private int type = 0;  //0:单件删除，1:整盒删除
     private HashMap<String, ReturnScanEntity> SerialDic = new HashMap<String, ReturnScanEntity>();// 标码字典
     private List<ReturnScanEntity> listScan = new ArrayList();  //退货扫码结果列表
 
@@ -94,7 +100,7 @@ public class ReturnQueryActivity extends DecodeBaseActivity implements  View.OnC
         });
         mScanTouchManager.setVisibility(View.VISIBLE);
 
-        initView();
+        bindView();
         mDoDecodeThread = new DoDecodeThread();
         mDoDecodeThread.start();
     }
@@ -158,49 +164,23 @@ public class ReturnQueryActivity extends DecodeBaseActivity implements  View.OnC
         }
     }
 
-    //是否在线删除数据
-    private boolean isDelOnline()
-    {
-        AlertDialog alert = null;
-        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-        // 设置对话框标题
-        alert = builder.setIcon(R.mipmap.ic_launcher)
-                .setTitle("系统提示：")
-                .setMessage("确定删除该条码相关扫描数据吗?")
-                .setCancelable(false)
-                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        isDelOnline = false;
-                    }
-                })
-                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        isDelOnline = true;
-                    }
-                }).create();             //创建AlertDialog对象
-        alert.show();//显示对话框
-
-        return isDelOnline;
-    }
-
     //初始化界面
-    public void initView(){
+    public void bindView(){
         btnQuit.setOnClickListener(this);
-        btnDelAll.setOnClickListener(this);
-        btnDelOne.setOnClickListener(this);
+        btnDel.setOnClickListener(this);
 
         setEditTextReadonly(tbBillNo);
         setEditTextReadonly(tbWarehouse);
         setEditTextReadonly(tbProduct);
 
         mContext = this.getApplicationContext();
+        mAdialog = new Adialog(this);
+        SerialNoDicInit();
         tbBarcode.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 //TODO:回车键按下时要执行的操作
-                if(keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER || keyCode == KeyEvent.KEYCODE_ENTER){
+                if( (keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER || keyCode == KeyEvent.KEYCODE_ENTER)  && event.getAction()==KeyEvent.ACTION_DOWN){
                     HandleBarcode(tbBarcode.getText().toString());
                     return true;
                 }else
@@ -244,16 +224,139 @@ public class ReturnQueryActivity extends DecodeBaseActivity implements  View.OnC
         SetFilePath(barcodeEntity.realBarCode);
     }
 
+    Runnable DelThread = new Runnable() {
+        @Override
+        public void run() {
+            Message mess = new Message();
+            String barcode = tbBarcode.getText().toString().trim();
+            BarcodeEntity barcodeEntity = Public.IsBarCodeValid(barcode);
+            //在线删除数据同步服务器
+            if (LoginActivity.onlineFlag && isDelOnline) {
+                try {
+                    //上传删除信息
+                    String exceptionMsg = "";
+                    HashMap<String, String> query = new HashMap<String, String>();
+
+                    query.put("returnId", billId);
+                    query.put("serialNo", barcodeEntity.realBarCode);
+                    query.put("type", barcodeEntity.grade!=2?"0":"1");
+
+                    ReturnScanDeleteResultMsg reDel = ApiHelper.GetHttp(ReturnScanDeleteResultMsg.class,
+                            Config.WebApiUrl + "ReturnScanDelete?", query, Config.StaffId, Config.AppSecret, true);
+
+                    if (reDel.StatusCode != 200) {
+                        throw new Exception(reDel.Info);
+                    }
+                    if (reDel.Result() == null || reDel.Result().isEmpty()) {
+                        throw new Exception("无相关删除内容！");
+                    }
+
+                    //删除成功修改保存scan文件
+                    String text = "";
+                    File file = new File(ScanFileName);
+                    if (file.exists()) {
+                        String line;
+                        String[] lineMember;
+                        String[] serialArr;  //产品组合码
+                        FileReader fr = new FileReader(ScanFileName);
+                        BufferedReader br = new BufferedReader(fr);
+                        while ((line = br.readLine()) != null) {
+                            lineMember = line.split(",");
+                            if( !lineMember[0].equals(barcodeEntity.realBarCode)){
+                                text += line + "/r/n";
+                            }
+                        }
+                        br.close();
+                        fr.close();
+
+                        //定义一个写入流，将值写入到里面去
+                        File f = new File(ScanFileName);
+                        FileWriter fw = new FileWriter(f, false);
+                        BufferedWriter out = new BufferedWriter(fw);
+                        out.write(text);
+                        out.flush(); // 把缓存区内容压入文件
+                        out.close(); // 关闭文件
+
+                        mess.what = 2;
+                        mess.obj  = "删除成功！";
+                        eHandler.sendMessage(mess);
+                        return;
+                    }
+                } catch (Exception ex) {
+                    mess.what = 0;
+                    mess.obj = ex.getMessage();
+                    eHandler.sendMessage(mess);
+                    return;
+                }
+            }
+
+        }
+    };
+
+    //单件删除
+    public void DelEvent(){
+        String barcode = tbBarcode.getText().toString().trim();
+        if ( (SerialDic.get(barcode).toString().isEmpty() ) || billId.isEmpty()) {
+            mAdialog.warnDialog("请选择要删除的条码扫描信息！");
+            return;
+        }
+
+        AlertDialog alert = null;
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        // 设置对话框标题
+        alert = builder.setIcon(R.mipmap.ic_launcher)
+                .setTitle("系统提示：")
+                .setMessage("确定删除该条码相关扫描数据吗?")
+                .setCancelable(false)
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        return;
+                    }
+                })
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        AlertDialog alert = null;
+                        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                        // 设置对话框标题
+                        alert = builder.setIcon(R.mipmap.ic_launcher)
+                                .setTitle("系统提示：")
+                                .setMessage("是否在线同步删除该条码相关扫描数据吗?")
+                                .setCancelable(false)
+                                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        isDelOnline = false;
+                                        mProgersssDialog = new ProgersssDialog(ReturnQueryActivity.this);
+                                        mProgersssDialog.setMsg("删除中");
+                                        new Thread(DelThread).start();
+                                        return;
+                                    }
+                                })
+                                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        isDelOnline = true;
+                                        mProgersssDialog = new ProgersssDialog(ReturnQueryActivity.this);
+                                        mProgersssDialog.setMsg("删除中");
+                                        new Thread(DelThread).start();
+                                        return;
+                                    }
+                                }).create();             //创建AlertDialog对象
+                        alert.show();//显示对话框
+                    }
+                }).create();             //创建AlertDialog对象
+        alert.show();                    //显示对话框
+
+    };
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            //删除整组
-            case R.id.delAllBtn:
-
-                break;
-            //删除单件
-            case R.id.delOneBtn:
-
+            //删除
+            case R.id.delBtn:
+                DelEvent();
                 break;
             //退出
             case R.id.quitBtn:
@@ -261,6 +364,35 @@ public class ReturnQueryActivity extends DecodeBaseActivity implements  View.OnC
                 break;
         }
     }
+
+    Handler eHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            //登录加载dialog关闭
+            mProgersssDialog.cancel();
+            switch (msg.what) {
+                //错误提示
+                case 0:
+                    //do something,refresh UI;
+                    mAdialog.failDialog( msg.obj.toString() );
+                    break;
+                //成功提示
+                case 1:
+                    //do something,refresh UI;
+                    mAdialog.okDialog( msg.obj.toString() );
+                    break;
+                //删除成功提示
+                case 2:
+                    //清空控件
+                    SetEditTextNull();
+                    mAdialog.okDialog(msg.obj.toString());
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
 
     private Handler ScanResultHandler = new Handler() {
         public void handleMessage(Message msg) {

@@ -290,39 +290,37 @@ public class ReturnScanActivity extends DecodeBaseActivity implements  View.OnCl
 
             ReturnListResultMsg Listc = ApiHelper.GetHttp(ReturnListResultMsg.class,
                     Config.WebApiUrl + "GetReturnList?", query, Config.StaffId , Config.AppSecret ,true);
-            Listc.setResult();
 
             if(Listc.StatusCode != 200)
             {
                 throw new Exception(Listc.Info);
             }
-            if( Listc.Result == null || Listc.Result.isEmpty())
+            if( Listc.Result() == null || Listc.Result().isEmpty())
             {
                 throw new Exception("无相关主单数据！");
             }
 
             //保存入库主单
-            SaveGoDownDataFile(Listc.Result);
+            SaveGoDownDataFile(Listc.Result());
 
             //获取主单明细，并保存
-            for( ReturnEntity reEntity : Listc.Result)
+            for( ReturnEntity reEntity : Listc.Result())
             {
                 query.clear();
                 query.put("returnId" , reEntity.ReturnId);
                 ReturnBillingListResultMsg returnBillListc = ApiHelper.GetHttp(ReturnBillingListResultMsg.class,
                         Config.WebApiUrl + "GetReturnBillingListByReturnId?", query, Config.StaffId , Config.AppSecret ,true);
-                returnBillListc.setResult();
 
                 if(returnBillListc.StatusCode != 200)
                 {
                     throw new Exception(returnBillListc.Info);
                 }
-                if( returnBillListc.Result == null || returnBillListc.Result.isEmpty())
+                if( returnBillListc.Result() == null || returnBillListc.Result().isEmpty())
                 {
                     continue;
                 }
                 SetFilePath(reEntity.ReturnCode);
-                SaveGoDownBillingDataFile(returnBillListc.Result);
+                SaveGoDownBillingDataFile(returnBillListc.Result());
             }
         }catch (Exception ex){
             throw new Exception(ex.getMessage());
@@ -596,7 +594,6 @@ public class ReturnScanActivity extends DecodeBaseActivity implements  View.OnCl
 
                     ReturnScanSaveResultMsg rtScan = ApiHelper.GetHttp(ReturnScanSaveResultMsg.class,
                             Config.WebApiUrl + "PostReturnSerialNo?", parames, Config.StaffId, Config.AppSecret, true);
-                    rtScan.setResult();
 
                     if(!exceptionMsg.isEmpty()){
                         mess.what = 0;
@@ -612,7 +609,7 @@ public class ReturnScanActivity extends DecodeBaseActivity implements  View.OnCl
                         return;
                     }
 
-                    scanQty = rtScan.Qty;
+                    scanQty = rtScan.Qty();
 
                     if (scanQty == 0) {
                         mess.what = 0;

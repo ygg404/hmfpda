@@ -10,15 +10,12 @@ import java.util.List;
  * 订单明细获取类
  */
 public class OrderBillingListResultMsg extends HttpResponseMsg{
-    public List<OrderBillingEntity> Result;
-
-    public void setResult(){
+    public List<OrderBillingEntity> Result(){
         if(StatusCode == StatusCodeEnum.Success.getValue() && !(Data == null || Data=="")){
-            Result =  JSON.parseArray(Data.toString(), OrderBillingEntity.class);
+            return JSON.parseArray(Data.toString(), OrderBillingEntity.class);
         }
         else{
-            Result = null;
+            return null;
         }
-
     }
 }

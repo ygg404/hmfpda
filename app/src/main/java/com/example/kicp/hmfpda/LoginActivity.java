@@ -108,8 +108,7 @@ public class LoginActivity extends AppCompatActivity {
                 if(tokenmsg.StatusCode!= 200){
                     throw new Exception( tokenmsg.Info );
                 }
-                tokenmsg.setResult();
-                TokenResult = tokenmsg.getResult();
+                TokenResult = tokenmsg.Result();
                 currentStaffId = id_login.getText().toString().trim();
 
                 //登录
