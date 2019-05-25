@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
+import com.example.kicp.hmfpda.Models.UserEntity;
 import com.example.kicp.hmfpda.Utils.Adialog;
 import com.example.kicp.hmfpda.Utils.ApiHelper;
 import com.example.kicp.hmfpda.Utils.Config.Config;
@@ -31,6 +32,9 @@ import org.xutils.common.Callback;
 import org.xutils.http.RequestParams;
 import org.xutils.view.annotation.ContentView;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -141,6 +145,74 @@ public class LoginActivity extends AppCompatActivity {
         }
     };
 
+    /**
+     * 登录线程（离线）
+     */
+    Runnable loadRunOffline = new Runnable() {
+        @Override
+        public void run() {
+            String username = id_login.getText().toString().trim();
+            String pwd      = password_login.getText().toString().trim();
+
+            String userFile = mContext.getFilesDir().getPath().toString() + Public.UserPath;
+            short loginResult = 0;  //-1：账户密码不匹配； 0:账号不存在； 1: 离线登录成功；
+            Message message = new Message();
+            try {
+                String line;
+                File file = new File(userFile);
+                if (file.exists()){
+                    FileReader fr = new FileReader(userFile);
+                    BufferedReader br = new BufferedReader(fr);
+                    while ((line = br.readLine()) != null) {
+                        UserEntity user = new UserEntity();
+                        String[] lineMembers = line.split(",");
+                        user.UserId = lineMembers[0];
+                        user.PadAccount = lineMembers[1];
+                        user.RealName = lineMembers[2];
+                        user.PdaPassWord = lineMembers[3];
+                        if (username.equals(user.PadAccount) && !pwd.equals(user.PdaPassWord)) {
+                            loginResult = -1;
+                        }
+
+                        if (username.equals(user.PadAccount) && pwd.equals(user.PdaPassWord)) {
+                            loginResult = 1;
+                            CreateUserId = user.UserId;
+                        }
+                    }
+                    br.close();
+                    fr.close();
+
+                    if(loginResult == -1){
+                        throw  new Exception("账号和密码不匹配！");
+                    }else if(loginResult == 0){
+                        throw  new Exception("该账户不存在！");
+                    }else{
+                        //登录加载dialog关闭
+                        mProgersssDialog.cancel();
+                        //离线登录成功
+                        currentStaffId = String.valueOf(Config.StaffId);
+                        //新建一个Intent
+                        Intent intent = new Intent();
+                        //制定intent要启动的类
+                        intent.setClass(LoginActivity.this, MainActivity.class);
+                        //启动一个新的Activity 跳转主菜单
+                        startActivity(intent);
+                        //关闭当前的
+                        LoginActivity.this.finish();
+                    }
+                }
+                else{
+                    throw  new Exception("用户离线登录文件不存在！");
+                }
+
+            }catch (Exception ex){
+                message.obj = ex.getMessage().toString();
+                eHandler.sendMessage(message);
+            }
+
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -181,7 +253,14 @@ public class LoginActivity extends AppCompatActivity {
     @Event(value = R.id.login_button,type = View.OnClickListener.class)
     private void loginThread(View v){
         mProgersssDialog = new ProgersssDialog(LoginActivity.this);
-        new Thread(loadRun).start();
+        if(onlineFlag){
+            //在线
+            new Thread(loadRun).start();
+        }
+        else{
+            //离线
+            new Thread(loadRunOffline).start();
+        }
     }
 
     /**

@@ -24,8 +24,11 @@ public class Public {
     public static final String rdPath = "销售出库";
     //退货目录
     public static final String rtPath = "销售退货";
-
+    // 文件后缀
     public static final String FileType = ".dat";
+    // 用户列表文件
+    public static final String UserPath = "/BaseData/PDALogin.txt";
+
 
     public static final String GODOWN_MAIN_TABLE = "godownMainBill";    //入库主单
     public static final String ORDER_MAIN_TABLE = "orderMainBill";     //订单主单
