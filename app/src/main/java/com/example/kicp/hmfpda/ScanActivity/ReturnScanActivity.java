@@ -777,7 +777,7 @@ public class ReturnScanActivity extends DecodeBaseActivity implements  View.OnCl
                     ScanQty = Integer.parseInt(lineMember[7]);
 
                     billCount += ScanQty;
-                    if(curWarehouseId == warehouseId && curProductId == productId ){
+                    if(curWarehouseId.equals(warehouseId) && curProductId.equals(productId) ){
                         curCount += ScanQty;
                     }
 
