@@ -58,7 +58,7 @@ public class ProperTies {
             props.load(context.openFileInput(Public.ConfigFile));
             props.setProperty(keyName, keyValue == null?"":keyValue);
             //FileOutputStream out = context.getAssets().openFd("appConfig").createOutputStream();
-            FileOutputStream out = context.openFileOutput(Public.ConfigFile,Context.MODE_APPEND);
+            FileOutputStream out = context.openFileOutput(Public.ConfigFile,Context.MODE_PRIVATE);
             // FileOutputStream out = new FileOutputStream(configPath);
             props.store(out, null);
 
