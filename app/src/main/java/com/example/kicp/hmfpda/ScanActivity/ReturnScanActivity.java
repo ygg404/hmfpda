@@ -164,6 +164,16 @@ public class ReturnScanActivity extends DecodeBaseActivity implements  View.OnCl
         btnQuit.setOnClickListener(this);
         mScanTouchManager.setVisibility(View.VISIBLE);
 
+        ProductInfo.clear();
+        //创建SimpleAdapter适配器将数据绑定到item显示控件上
+        digAdapter = new SimpleAdapter(this, ProductInfo, R.layout.list_item_return,
+                new String[]{ "returnBillingId", "warehouseId","warehouseName","productId","productName" },
+                new int[]{R.id.returnBillingId, R.id.warehouseId, R.id.warehouseName,R.id.productId,R.id.productName});
+        //实现列表的显示
+        mListView.setAdapter(digAdapter);
+        //条目点击事件
+        mListView.setOnItemClickListener(new ItemClickListener());
+
         //在线方式 隐藏下拉选框
         if(LoginActivity.onlineFlag){
             cmb_plist.setVisibility(View.INVISIBLE);
@@ -176,7 +186,7 @@ public class ReturnScanActivity extends DecodeBaseActivity implements  View.OnCl
                         try {
                             billNo = line_plist.getText().toString();
                             mProgersssDialog = new ProgersssDialog(ReturnScanActivity.this);
-                            mProgersssDialog.show();
+                            mProgersssDialog.setMsg("获取单据中");
                             new Thread(GetBillingRun).start();
                         }catch (Exception ex){
                             ex.printStackTrace();
@@ -215,15 +225,7 @@ public class ReturnScanActivity extends DecodeBaseActivity implements  View.OnCl
 //                });
 
 
-        ProductInfo.clear();
-        //创建SimpleAdapter适配器将数据绑定到item显示控件上
-        digAdapter = new SimpleAdapter(this, ProductInfo, R.layout.list_item_return,
-                new String[]{ "returnBillingId", "warehouseId","warehouseName","productId","productName" },
-                new int[]{R.id.returnBillingId, R.id.warehouseId, R.id.warehouseName,R.id.productId,R.id.productName});
-        //实现列表的显示
-        mListView.setAdapter(digAdapter);
-        //条目点击事件
-        mListView.setOnItemClickListener(new ItemClickListener());
+
     }
 
     /**
@@ -270,6 +272,8 @@ public class ReturnScanActivity extends DecodeBaseActivity implements  View.OnCl
                     break;
                 //下载单据后更新UI
                 case 2:
+                    ChangeData(billNo);
+                    mAdialog.okDialog(msg.obj.toString());
                     break;
                 default:
                     break;
@@ -474,7 +478,7 @@ public class ReturnScanActivity extends DecodeBaseActivity implements  View.OnCl
                 out.close(); // 关闭文件
             }
         }catch (Exception ex){
-            ;
+            ex.printStackTrace();
         }
     }
 
@@ -512,9 +516,9 @@ public class ReturnScanActivity extends DecodeBaseActivity implements  View.OnCl
     //保存扫描文件
     public void SaveScanFile(int scanQty) throws Exception{
         try {
-            //如果文件存在，则重写内容；如果文件不存在，则创建文件
+            //如果文件存在，则追加内容；如果文件不存在，则创建文件
             File f=new File(ScanFileName);
-            FileWriter fw = new FileWriter(f, false);
+            FileWriter fw = new FileWriter(f, true);
             BufferedWriter out = new BufferedWriter(fw);
 
             out.write( tbBarcode.getText().toString() + "," +

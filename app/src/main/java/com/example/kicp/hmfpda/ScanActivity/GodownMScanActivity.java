@@ -782,7 +782,7 @@ public class GodownMScanActivity extends DecodeBaseActivity implements  View.OnC
 
                         curCount += qty;
                         billCount += qty;
-
+                        CurProductNoArr.clear();
                         if (billCount == billPreset)
                         {
                             message.what = 1;

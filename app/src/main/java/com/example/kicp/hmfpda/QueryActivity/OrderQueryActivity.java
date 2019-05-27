@@ -52,7 +52,7 @@ public class OrderQueryActivity extends DecodeBaseActivity implements  View.OnCl
 
     @ViewInject(R.id.delBtn)
     private Button btnDel;         //删除
-    @ViewInject(R.id.btn_Quit)
+    @ViewInject(R.id.quitBtn)
     private Button btnQuit;      //退出按钮
     @ViewInject(R.id.tbBillNo)
     private EditText tbBillNo;              //单据号
@@ -116,7 +116,7 @@ public class OrderQueryActivity extends DecodeBaseActivity implements  View.OnCl
     //设置单据保存文件的路径
     private void SetFilePath(String billNo)
     {
-        String dir = mContext.getFilesDir().getPath().toString() + "/" + Public.gmPath + "/";
+        String dir = mContext.getFilesDir().getPath().toString() + "/" + Public.rdPath + "/";
         MainFileName = dir + billNo + "" + Public.FileType;
         EntryFileName = dir + billNo + "-Billing" + Public.FileType;
         ScanFileName = dir + billNo + "-Scan" + Public.FileType;
@@ -137,7 +137,7 @@ public class OrderQueryActivity extends DecodeBaseActivity implements  View.OnCl
                         String[] lineMember;
                         String line;
                         if (fileName.contains("-Scan")) {
-                            FileReader fr = new FileReader(fileName);
+                            FileReader fr = new FileReader(path + fileName);
                             BufferedReader br = new BufferedReader(fr);
                             while ((line = br.readLine()) != null) {
                                 OrderScanEntity mScanEntity = new OrderScanEntity();
@@ -178,7 +178,7 @@ public class OrderQueryActivity extends DecodeBaseActivity implements  View.OnCl
                     BarcodeEntity barcodeEntity = Public.IsBarCodeValid(barcode);
                     HashMap<String, String> query = new HashMap<String, String>();
 
-                    query.put("godownMId", billId);
+                    query.put("orderId", billId);
                     query.put("serialNo", barcodeEntity.realBarCode);
                     query.put("type", barcodeEntity.grade!= 2 ? "0" : "1");
 
@@ -222,8 +222,7 @@ public class OrderQueryActivity extends DecodeBaseActivity implements  View.OnCl
                     out.flush(); // 把缓存区内容压入文件
                     out.close(); // 关闭文件
 
-                    //清空控件
-                    SetEditTextNull();
+
                     SerialDic.remove(barcode);
 
                     mess.what = 2;
@@ -295,7 +294,7 @@ public class OrderQueryActivity extends DecodeBaseActivity implements  View.OnCl
         setEditTextReadonly(tbLN);
 
         mAdialog = new Adialog(this);
-        mContext = this.getApplicationContext();
+        mContext = OrderQueryActivity.this;
         SerialNoDicInit();
         tbBarcode.setOnKeyListener(new View.OnKeyListener() {
             @Override
@@ -342,7 +341,7 @@ public class OrderQueryActivity extends DecodeBaseActivity implements  View.OnCl
         tbBillNo.setText(entity.orderCode);
         tbAgent.setText(entity.agentName);
         tbProduct.setText(entity.productName);
-        SetFilePath(barcodeEntity.realBarCode);
+        SetFilePath(entity.orderCode);
     }
 
     @Override

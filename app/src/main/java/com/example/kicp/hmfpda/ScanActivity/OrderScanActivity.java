@@ -66,7 +66,7 @@ import java.util.List;
 public class OrderScanActivity extends DecodeBaseActivity implements  View.OnClickListener,BarcodeManager.OnEngineStatus {
 
     @ViewInject(R.id.num_line)
-    private TextView line_plist;              //单据号选择项
+    private EditText line_plist;              //单据号选择项
     @ViewInject(R.id.num_spinner)
     private Spinner cmb_plist;              //单据号选择项
     @ViewInject(R.id.tbAgent)
@@ -164,6 +164,29 @@ public class OrderScanActivity extends DecodeBaseActivity implements  View.OnCli
         btnUpload.setOnClickListener(this);
         btnQuit.setOnClickListener(this);
 
+        ProductInfo.clear();
+        //创建SimpleAdapter适配器将数据绑定到item显示控件上
+        digAdapter = new SimpleAdapter(this, ProductInfo, R.layout.list_item_order,
+                new String[]{ "orderBillingId", "agentId","agentName","productId","productName","ln" },
+                new int[]{R.id.orderBillingId, R.id.agnetId, R.id.agnetName,R.id.productId,R.id.productName,R.id.ln});
+        //实现列表的显示
+        mListView.setAdapter(digAdapter);
+        //条目点击事件
+        mListView.setOnItemClickListener(new ItemClickListener());
+
+        tbBarcode.setOnKeyListener(new View.OnKeyListener(){
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                //TODO:回车键按下时要执行的操作
+                if ( (keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER || keyCode == KeyEvent.KEYCODE_ENTER) && event.getAction()==KeyEvent.ACTION_DOWN ){
+                    if(lockMode)HandleBarcode(tbBarcode.getText().toString().trim());
+                    return true;
+                }else{
+                    return false;
+                }
+            }
+        });
+
         //在线方式 隐藏下拉选框
         if(LoginActivity.onlineFlag){
             cmb_plist.setVisibility(View.INVISIBLE);
@@ -173,12 +196,10 @@ public class OrderScanActivity extends DecodeBaseActivity implements  View.OnCli
                 public boolean onKey(View v, int keyCode, KeyEvent event) {
                     //TODO:回车键按下时要执行的操作
                     if ( (keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER || keyCode == KeyEvent.KEYCODE_ENTER) && event.getAction()==KeyEvent.ACTION_DOWN ){
-                        try {
-                            billNo = line_plist.getText().toString();
-                            DownLoadBills();
-                        }catch (Exception ex){
-                            ex.printStackTrace();
-                        }
+                        billNo = line_plist.getText().toString();
+                        mProgersssDialog = new ProgersssDialog(OrderScanActivity.this);
+                        mProgersssDialog.setMsg("获取单据中");
+                        new Thread(GetBillingRun).start();
                         return true;
                     }else{
                         return false;
@@ -190,16 +211,6 @@ public class OrderScanActivity extends DecodeBaseActivity implements  View.OnCli
             line_plist.setVisibility(View.INVISIBLE);
             cmb_plist.setVisibility(View.VISIBLE);
         }
-
-        ProductInfo.clear();
-        //创建SimpleAdapter适配器将数据绑定到item显示控件上
-        digAdapter = new SimpleAdapter(this, ProductInfo, R.layout.list_item_order,
-                new String[]{ "orderBillingId", "agnetId","agnetName","productId","productName","ln" },
-                new int[]{R.id.orderBillingId, R.id.agnetId, R.id.agnetName,R.id.productId,R.id.productName,R.id.ln});
-        //实现列表的显示
-        mListView.setAdapter(digAdapter);
-        //条目点击事件
-        mListView.setOnItemClickListener(new ItemClickListener());
     }
 
     //获取点击事件
@@ -212,7 +223,7 @@ public class OrderScanActivity extends DecodeBaseActivity implements  View.OnCli
             billingId = productData.get("orderBillingId").toString();
             productId = productData.get("productId").toString();
             agentId = productData.get("agentId").toString();
-            tbAgent.setText(productData.get("agnetName").toString());
+            tbAgent.setText(productData.get("agentName").toString());
             tbProduct.setText( productData.get("productName").toString() );
             tbLN.setText( productData.get("ln").toString() );
 
@@ -240,7 +251,7 @@ public class OrderScanActivity extends DecodeBaseActivity implements  View.OnCli
     //设置单据保存文件的路径
     private void SetFilePath(String billNo)
     {
-        String dir = mContext.getFilesDir().getPath().toString() + "/" + Public.gmPath + "/";
+        String dir = mContext.getFilesDir().getPath().toString() + "/" + Public.rdPath + "/";
         MainFileName = dir + billNo + "" + Public.FileType;
         EntryFileName = dir + billNo + "-Billing" + Public.FileType;
         ScanFileName = dir + billNo + "-Scan" + Public.FileType;
@@ -357,9 +368,9 @@ public class OrderScanActivity extends DecodeBaseActivity implements  View.OnCli
     //保存扫描文件
     public void SaveScanFile(int scanQty) throws Exception{
         try {
-            //如果文件存在，则重写内容；如果文件不存在，则创建文件
+            //如果文件存在，则追加内容；如果文件不存在，则创建文件
             File f=new File(ScanFileName);
-            FileWriter fw = new FileWriter(f, false);
+            FileWriter fw = new FileWriter(f, true);
             BufferedWriter out = new BufferedWriter(fw);
 
             String ln = tbLN.getText().toString();
@@ -452,7 +463,7 @@ public class OrderScanActivity extends DecodeBaseActivity implements  View.OnCli
             if(entity.OrderId.equals(billId)) {
                 HashMap<String, Object> item = new HashMap<String, Object>();
                 item.put("orderBillingId", entity.OrderBillingId);
-                item.put( "agendgDataInittId" , entity.AgentId);
+                item.put( "agentId" , entity.AgentId);
                 item.put( "agentName" , entity.AgentName);
                 item.put( "productId" , entity.ProductId);
                 item.put( "productName" , entity.ProductName );
@@ -523,7 +534,7 @@ public class OrderScanActivity extends DecodeBaseActivity implements  View.OnCli
         tbBarcode.setFocusable(true);
         lockMode = true;
         btnLock.setText("解锁");
-
+        tbBarcode.setFocusable(true);
     }
 
     //扫描锁定按钮事件
@@ -532,7 +543,12 @@ public class OrderScanActivity extends DecodeBaseActivity implements  View.OnCli
             Unlock();
         }
         else {
-            if (cmb_plist.getSelectedItem() == null )
+            if (!LoginActivity.onlineFlag  && cmb_plist.getSelectedItem() == null )
+            {
+                mAdialog.warnDialog( "请选择单号！" );
+                return;
+            }
+            if (LoginActivity.onlineFlag  && line_plist.getText().toString().isEmpty() )
             {
                 mAdialog.warnDialog( "请选择单号！" );
                 return;
@@ -614,6 +630,27 @@ public class OrderScanActivity extends DecodeBaseActivity implements  View.OnCli
         et.setFocusableInTouchMode(false);      //触摸时也得不到焦点
     }
 
+    /**
+     * 获取单据线程
+     */
+    Runnable GetBillingRun = new Runnable() {
+        @Override
+        public void run() {
+            Message message = new Message();
+            try {
+                DownLoadBills();
+                message.what = 2;
+                message.obj = "获取单据成功！";
+                //
+                eHandler.sendMessage(message);
+            }catch ( Exception ex){
+                message.what = 0;
+                message.obj = ex.getMessage();
+                eHandler.sendMessage(message);
+            }
+        }
+    };
+
     Handler eHandler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -637,6 +674,8 @@ public class OrderScanActivity extends DecodeBaseActivity implements  View.OnCli
                     break;
                 //下载单据后更新UI
                 case 2:
+                    ChangeData(billNo);
+                    mAdialog.okDialog(msg.obj.toString());
                     break;
                 default:
                     break;
@@ -732,7 +771,7 @@ public class OrderScanActivity extends DecodeBaseActivity implements  View.OnCli
     //扫码处理
     public void HandleBarcode(String barCode)
     {
-        if (bLockMode)
+        if (lockMode)
         {
             BarcodeEntity barcodeEntity = Public.IsBarCodeValid(barCode);
             tbBarcode.setText(barcodeEntity.realBarCode);
@@ -748,14 +787,14 @@ public class OrderScanActivity extends DecodeBaseActivity implements  View.OnCli
                 return;
             }
 
-            mProgersssDialog = new ProgersssDialog(this.getApplicationContext());
+            mProgersssDialog = new ProgersssDialog(OrderScanActivity.this);
             mProgersssDialog.setMsg("扫码上传中");
             new Thread(PostOrder).start();
         }
         else
         {
             //非锁定方式 扫描 单据号
-            line_plist.setText(barCode);
+            line_plist.setText(barCode.trim());
 
         }
 

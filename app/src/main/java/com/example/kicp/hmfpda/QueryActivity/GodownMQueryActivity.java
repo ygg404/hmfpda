@@ -126,6 +126,7 @@ public class GodownMQueryActivity extends DecodeBaseActivity implements  View.On
     //清空控件
     private void SetEditTextNull()
     {
+        billId = "";
         tbBillNo.setText("");
         tbProduct.setText("");
         tbWarehouse.setText("");
@@ -218,7 +219,7 @@ public class GodownMQueryActivity extends DecodeBaseActivity implements  View.On
                         lineMember = line.split(",");
                         serialArr = lineMember[9].split("\\|"); //组合码
                         //序号不在内码且不是盒标 则保存扫描数据
-                        if ((Arrays.binarySearch(serialArr, barcode) < 0) && lineMember[10] != barcode) {
+                        if ((Arrays.binarySearch(serialArr, barcode) < 0) && !lineMember[10].equals(barcode)) {
                             //不存在
                             text += line + "\r\n";
                         } else {
@@ -261,7 +262,6 @@ public class GodownMQueryActivity extends DecodeBaseActivity implements  View.On
                     out.flush(); // 把缓存区内容压入文件
                     out.close(); // 关闭文件
 
-                    //清空控件
                     mess.what = 2;
                     mess.obj = "删除成功！";
                     eHandler.sendMessage(mess);
@@ -280,7 +280,7 @@ public class GodownMQueryActivity extends DecodeBaseActivity implements  View.On
     //删除整组
     public void DelAllEvent(){
         String barcode = tbBarcode.getText().toString().trim();
-        if ((SerialDic.get(barcode).toString().isEmpty() && MSerialDic.get(barcode).toString().isEmpty()) || billId.isEmpty()) {
+        if ((SerialDic.get(barcode) == null && MSerialDic.get(barcode) == null ) || billId.isEmpty()) {
             mAdialog.warnDialog("请选择要删除的条码扫描信息！");
             return;
         }
@@ -390,7 +390,7 @@ public class GodownMQueryActivity extends DecodeBaseActivity implements  View.On
                                 entity.serialArr = entity.serialArr.replace("||", "|");
                                 if (lineMember[9].length() != 0) {
                                     if (entity.serialArr.substring(0, 1).equals("|")) {
-                                        entity.serialArr = entity.serialArr.substring(1, lineMember[9].length() - 1);
+                                        entity.serialArr = entity.serialArr.substring(1, lineMember[9].length());
                                     }
                                     if (entity.serialArr.substring(entity.serialArr.length() - 1, entity.serialArr.length()).equals("|")) {
                                         entity.serialArr = entity.serialArr.substring(0, entity.serialArr.length() - 1);
@@ -403,7 +403,7 @@ public class GodownMQueryActivity extends DecodeBaseActivity implements  View.On
 
                                 if (lineMember[9].length() != 0) {
                                     if (lineMember[9].substring(0, 1).equals("|")) {
-                                        lineMember[9] = lineMember[9].substring(1, lineMember[9].length() - 1);
+                                        lineMember[9] = lineMember[9].substring(1, lineMember[9].length());
                                     }
 
                                     if (lineMember[9].substring(lineMember[9].length() - 1, lineMember[9].length()).equals("|")) {
@@ -452,7 +452,7 @@ public class GodownMQueryActivity extends DecodeBaseActivity implements  View.On
     //单件删除
     public void DelOneEvent(){
         String barcode = tbBarcode.getText().toString().trim();
-        if ( (SerialDic.get(barcode).toString().isEmpty() && MSerialDic.get(barcode).toString().isEmpty()) || billId.isEmpty()) {
+        if ( (SerialDic.get(barcode) == null && MSerialDic.get(barcode) == null ) || billId.isEmpty()) {
             mAdialog.warnDialog("请选择要删除的条码扫描信息！");
             return;
         }

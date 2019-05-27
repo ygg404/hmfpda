@@ -14,7 +14,7 @@ import static android.content.Context.MODE_PRIVATE;
  *  配置文件管理
  */
 public class Config {
-    public static String WebApiUrl = "http://hmf.uttcare.com:8181/api/WebApi/" ;
+    public static String WebApiUrl = "http://192.168.1.101:19000/api/WebApi/" ;
     public static int StaffId  = 8000000;
     public static String AppSecret = "5BD387065B4624136F54D9C3653F2D22C7EE9649AE9D71F73A158636E6EB36F3";
 
