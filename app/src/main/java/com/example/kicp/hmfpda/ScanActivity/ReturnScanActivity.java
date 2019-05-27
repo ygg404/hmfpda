@@ -119,6 +119,7 @@ public class ReturnScanActivity extends DecodeBaseActivity implements  View.OnCl
 
     private Adialog mAdialog;                //提示窗口
     private Context mContext;
+    private boolean lockMode = false;
     private ProgersssDialog mProgersssDialog;
     private SimpleAdapter digAdapter;
     private ArrayAdapter<String> spinAdapter;       //单据号spinner的适配器
@@ -173,6 +174,19 @@ public class ReturnScanActivity extends DecodeBaseActivity implements  View.OnCl
         mListView.setAdapter(digAdapter);
         //条目点击事件
         mListView.setOnItemClickListener(new ItemClickListener());
+
+        tbBarcode.setOnKeyListener(new View.OnKeyListener(){
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                //TODO:回车键按下时要执行的操作
+                if ( (keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER || keyCode == KeyEvent.KEYCODE_ENTER) && event.getAction()==KeyEvent.ACTION_DOWN ){
+                    if(lockMode)HandleBarcode(tbBarcode.getText().toString().trim());
+                    return true;
+                }else{
+                    return false;
+                }
+            }
+        });
 
         //在线方式 隐藏下拉选框
         if(LoginActivity.onlineFlag){
@@ -334,7 +348,7 @@ public class ReturnScanActivity extends DecodeBaseActivity implements  View.OnCl
     //设置单据保存文件的路径
     private void SetFilePath(String billNo)
     {
-        String dir = mContext.getFilesDir().getPath().toString() + "/" + Public.gmPath + "/";
+        String dir = mContext.getFilesDir().getPath().toString() + "/" + Public.rtPath + "/";
         MainFileName = dir + billNo + "" + Public.FileType;
         EntryFileName = dir + billNo + "-Billing" + Public.FileType;
         ScanFileName = dir + billNo + "-Scan" + Public.FileType;
@@ -588,7 +602,6 @@ public class ReturnScanActivity extends DecodeBaseActivity implements  View.OnCl
                 if (LoginActivity.onlineFlag) {
                     //上传扫描明细
                     String exceptionMsg = "";
-                    int staffId = Integer.parseInt(LoginActivity.currentStaffId);
                     HashMap<String, String> parames = new HashMap<>();
                     parames.put("returnId", billId);
                     parames.put("serialNo", barcode);
@@ -666,7 +679,7 @@ public class ReturnScanActivity extends DecodeBaseActivity implements  View.OnCl
     //扫码处理
     public void HandleBarcode(String barCode)
     {
-        if (bLockMode)
+        if (lockMode)
         {
             BarcodeEntity barcodeEntity = Public.IsBarCodeValid(barCode);
             tbBarcode.setText(barcodeEntity.realBarCode);
@@ -682,18 +695,19 @@ public class ReturnScanActivity extends DecodeBaseActivity implements  View.OnCl
                 return;
             }
 
-            mProgersssDialog = new ProgersssDialog(this.getApplicationContext());
+            mProgersssDialog = new ProgersssDialog(ReturnScanActivity.this);
             mProgersssDialog.setMsg("扫码上传中");
             new Thread(PostReturn).start();
         }
         else
         {
-
+            line_plist.setText(barCode.trim());
         }
     }
 
     //解除锁定
     private void Unlock(){
+        line_plist.setEnabled(true);
         cmb_plist.setEnabled(true);
         tbWarehouse.setEnabled(true);
         tbProduct.setEnabled(true);
@@ -701,12 +715,13 @@ public class ReturnScanActivity extends DecodeBaseActivity implements  View.OnCl
         btnQuit.setEnabled(true);
         if(!LoginActivity.onlineFlag)btnUpload.setEnabled(true);
         btnLock.setText("锁定");
-        bLockMode = false;
+        lockMode = false;
         barcode_exit.clear();
     }
 
     //锁定扫描
     private void Lock(){
+        line_plist.setEnabled(false);
         cmb_plist.setEnabled(false);
         tbWarehouse.setEnabled(false);
         tbProduct.setEnabled(false);
@@ -714,18 +729,22 @@ public class ReturnScanActivity extends DecodeBaseActivity implements  View.OnCl
         btnDelBill.setEnabled(false);
         btnUpload.setEnabled(false);
         tbBarcode.setFocusable(true);
-        bLockMode = true;
+        lockMode = true;
         btnLock.setText("解锁");
-
     }
 
     //扫描锁定按钮事件
     private void LockEvent(){
-        if(bLockMode){
+        if(lockMode){
             Unlock();
         }
         else {
-            if (cmb_plist.getSelectedItem() == null )
+            if ( !LoginActivity.onlineFlag && cmb_plist.getSelectedItem() == null )
+            {
+                mAdialog.warnDialog( "请选择单号！" );
+                return;
+            }
+            if ( LoginActivity.onlineFlag && billNo.isEmpty() )
             {
                 mAdialog.warnDialog( "请选择单号！" );
                 return;

@@ -116,7 +116,7 @@ public class ReturnQueryActivity extends DecodeBaseActivity implements  View.OnC
     //设置单据保存文件的路径
     private void SetFilePath(String billNo)
     {
-        String dir = mContext.getFilesDir().getPath().toString() + "/" + Public.gmPath + "/";
+        String dir = mContext.getFilesDir().getPath().toString() + "/" + Public.rtPath + "/";
         MainFileName = dir + billNo + "" + Public.FileType;
         EntryFileName = dir + billNo + "-Billing" + Public.FileType;
         ScanFileName = dir + billNo + "-Scan" + Public.FileType;
@@ -137,7 +137,7 @@ public class ReturnQueryActivity extends DecodeBaseActivity implements  View.OnC
                         String[] lineMember;
                         String line;
                         if (fileName.contains("-Scan")) {
-                            FileReader fr = new FileReader(fileName);
+                            FileReader fr = new FileReader(path + fileName);
                             BufferedReader br = new BufferedReader(fr);
                             while ((line = br.readLine()) != null) {
                                 ReturnScanEntity mScanEntity = new ReturnScanEntity();
