@@ -249,34 +249,52 @@ public class OrderQueryActivity extends DecodeBaseActivity implements  View.OnCl
                 mAdialog.failDialog("请选择要删除的条码扫描信息！");
                 return;
             }
-
+            AlertDialog alert = null;
             AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
             // 设置对话框标题
-            AlertDialog alert = builder.setIcon(R.mipmap.ic_launcher)
+            alert = builder.setIcon(R.mipmap.ic_launcher)
                     .setTitle("系统提示：")
-                    .setMessage("确定删除该条码并同步服务器的扫描数据吗?")
+                    .setMessage("确定删除该条码相关扫描数据吗?")
                     .setCancelable(false)
                     .setNegativeButton("取消", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            isDelOnline = false;
-                            mProgersssDialog = new ProgersssDialog(OrderQueryActivity.this);
-                            mProgersssDialog.setMsg("删除中");
-                            new Thread(DelThread).start();
                             return;
                         }
-                    })
-                    .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    }).setPositiveButton("确定", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            isDelOnline = true;
-                            mProgersssDialog = new ProgersssDialog(OrderQueryActivity.this);
-                            mProgersssDialog.setMsg("删除中");
-                            new Thread(DelThread).start();
-                            return;
+                            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                            // 设置对话框标题
+                            AlertDialog alert = builder.setIcon(R.mipmap.ic_launcher)
+                                    .setTitle("系统提示：")
+                                    .setMessage("确定删除该条码并同步服务器的扫描数据吗?")
+                                    .setCancelable(false)
+                                    .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            isDelOnline = false;
+                                            mProgersssDialog = new ProgersssDialog(OrderQueryActivity.this);
+                                            mProgersssDialog.setMsg("删除中");
+                                            new Thread(DelThread).start();
+                                            return;
+                                        }
+                                    })
+                                    .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            isDelOnline = true;
+                                            mProgersssDialog = new ProgersssDialog(OrderQueryActivity.this);
+                                            mProgersssDialog.setMsg("删除中");
+                                            new Thread(DelThread).start();
+                                            return;
+                                        }
+                                    }).create();             //创建AlertDialog对象
+                            alert.show();//显示对话框
                         }
                     }).create();             //创建AlertDialog对象
-            alert.show();//显示对话框
+            alert.show();                    //显示对话框
+
         }catch (Exception ex){
             ex.printStackTrace();
         }
